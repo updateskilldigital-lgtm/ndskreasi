@@ -1,37 +1,37 @@
 ```
-# Directories
-ndskreasi/
-temp_repo/
+# Executable and binary files
+*
 
-# Environment and cache
+# Environment files
 .env
 .env.local
-.env.*
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Build and distribution
-build/
-dist/
-*.egg-info/
+*.env.*
 
 # Dependencies
 node_modules/
 venv/
 .venv/
-.env/
+__pycache__/
+*.egg-info/
 
-# Editors and IDEs
+# Build artifacts
+dist/
+build/
+target/
+*.pyc
+*.class
+*.o
+*.obj
+*.so
+*.dll
+*.exe
+
+# Editor/IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# OS generated files
-.DS_Store
-Thumbs.db
+*.tmp
 
 # Logs
 *.log
@@ -41,7 +41,12 @@ Thumbs.db
 coverage/
 htmlcov/
 
-# Temporary files
-*.tmp
-*.temp
+# OS files
+.DS_Store
+Thumbs.db
+
+# Cache
+.mypy_cache/
+.pytest_cache/
+.gradle/
 ```
