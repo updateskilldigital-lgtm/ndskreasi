@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Lead {
+  id               Int      @id @default(autoincrement())
+  name             String
+  business_name    String
+  whatsapp         String
+  has_website      String
+  timeline         String
+  budget           String?
+  need_description String
+  status           String   @default("new")
+  created_at       DateTime @default(now())
+}
+
+model Keyword {
+  id            Int       @id @default(autoincrement())
+  keyword       String
+  category      String?
+  ai_provider   String    @default("openai")
+  focus_tone    String    @default("informatif")
+  target_words  Int       @default(1500)
+  priority      Int       @default(5)
+  status        String    @default("pending")
+  error_msg     String?
+  use_humanizer Boolean   @default(false)
+  intent        String    @default("informasional")
+  created_at    DateTime  @default(now())
+  articles      Article[]
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String
+  slug        String    @unique
+  description String?
+  color       String    @default("#1a1564")
+  articles    Article[]
+  created_at  DateTime  @default(now())
+}
+
+model Tag {
+  id         Int          @id @default(autoincrement())
+  name       String
+  slug       String       @unique
+  articles   ArticleTag[]
+  created_at DateTime     @default(now())
+}
+
+model ArticleTag {
+  article_id Int
+  tag_id     Int
+  article    Article @relation(fields: [article_id], references: [id], onDelete: Cascade)
+  tag        Tag     @relation(fields: [tag_id], references: [id], onDelete: Cascade)
+
+  @@id([article_id, tag_id])
+}
+
+model Article {
+  id               Int          @id @default(autoincrement())
+  keyword_id       Int?
+  category_id      Int?
+  title            String
+  slug             String       @unique
+  headline         String?
+  excerpt          String?
+  content          String
+  ai_provider      String?
+  meta_title       String?
+  meta_description String?
+  faq_data         String?
+  featured_image   String?
+  image_alt        String?
+  word_count       Int          @default(0)
+  seo_score        Float        @default(0)
+  status           String       @default("draft")
+  published_at     DateTime?
+  view_count       Int          @default(0)
+  wa_click_count   Int          @default(0)
+  created_at       DateTime     @default(now())
+  updated_at       DateTime     @updatedAt
+  keyword          Keyword?     @relation(fields: [keyword_id], references: [id], onDelete: SetNull)
+  category         Category?    @relation(fields: [category_id], references: [id], onDelete: SetNull)
+  tags             ArticleTag[]
+}
+
+model AffiliateLink {
+  id         Int      @id @default(autoincrement())
+  keyword    String   @unique
+  url        String
+  label      String?
+  type       String   @default("link")
+  image_url  String?
+  price      String?
+  badge      String?
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+}
+
+model Subscriber {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  name       String?
+  source     String?
+  created_at DateTime @default(now())
+}
+
+model Setting {
+  key   String @id
+  value String
+}
