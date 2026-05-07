@@ -1,213 +1,274 @@
 'use client'
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Button } from '@/components/ui/Button'
-import { Container } from '@/components/ui/Container'
-import { CheckCircle, Send, Shield } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { useRef, useState } from 'react'
+import { motion, useInView, AnimatePresence } from 'framer-motion'
 
-const leadSchema = z.object({
-  name: z.string().min(2, 'Nama minimal 2 karakter'),
-  business_name: z.string().min(2, 'Nama bisnis minimal 2 karakter'),
-  whatsapp: z.string().regex(/^62[0-9]{9,13}$/, 'Nomor WhatsApp tidak valid (contoh: 6281234567890)'),
-  has_website: z.enum(['yes', 'no']),
-  timeline: z.enum(['<1 month', '1-3 months', '>3 months']),
-  budget: z.string().optional(),
-  need_description: z.string().min(20, 'Ceritakan kebutuhan Anda minimal 20 karakter'),
-})
-
-type LeadFormData = z.infer<typeof leadSchema>
-
-const ease = [0.22, 1, 0.36, 1] as [number, number, number, number]
+const budgets = ['< Rp 50 Juta', 'Rp 50–150 Juta', 'Rp 150–500 Juta', '> Rp 500 Juta']
+const services = ['Brand Strategy', 'UI/UX Design', 'Web Development', 'Digital Growth', 'Full-Service']
 
 export function LeadForm() {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true, margin: '-8%' })
+  const [selectedBudget, setSelectedBudget] = useState<string | null>(null)
+  const [selectedService, setSelectedService] = useState<string | null>(null)
+  const [submitted, setSubmitted] = useState(false)
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<LeadFormData>({
-    resolver: zodResolver(leadSchema),
-  })
-
-  const onSubmit = async (data: LeadFormData) => {
-    setIsSubmitting(true)
-
-    try {
-      const response = await fetch('/api/leads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-
-      if (response.ok) {
-        setIsSuccess(true)
-        reset()
-
-        const waMessage = `Halo, saya ${data.name} dari ${data.business_name}. Saya baru saja mengisi form konsultasi dan tertarik dengan layanan website agency.`
-        setTimeout(() => {
-          window.open(`https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER}?text=${encodeURIComponent(waMessage)}`, '_blank')
-        }, 2000)
-      }
-    } catch (error) {
-      console.error('Error submitting form:', error)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  if (isSuccess) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4, ease }}
-        className="text-center py-12"
-      >
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle className="h-8 w-8 text-green-600" />
-        </div>
-        <h3 className="text-xl font-bold text-primary mb-2">Terima Kasih!</h3>
-        <p className="text-text-secondary">
-          Tim kami akan menghubungi Anda dalam <strong>5 menit</strong> melalui WhatsApp.
-        </p>
-      </motion.div>
-    )
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitted(true)
   }
 
   return (
-    <Container maxWidth="lg">
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-80px' }}
-        transition={{ duration: 0.7, ease }}
-        className="glass-card rounded-2xl p-6 md:p-8"
-        id="lead-form"
-      >
-        <div className="text-center mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-primary mb-2">
-            Konsultasi Gratis
-          </h2>
-          <p className="text-text-secondary">
-            Isi form di bawah, tim kami akan menghubungi Anda dalam 5 menit
-          </p>
+    <section id="contact" ref={ref} className="px-6 md:px-16 max-w-screen-xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
+        {/* Left — CTA copy */}
+        <div className="flex flex-col justify-center">
+          <motion.div
+            initial={{ opacity: 0, x: -16 }}
+            animate={inView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 0.6 }}
+            className="flex items-center gap-3 mb-6"
+          >
+            <span className="w-6 h-px bg-[#c8a96e]" />
+            <span
+              className="text-[#c8a96e] text-[10px] tracking-[0.3em] uppercase"
+              style={{ fontFamily: "'DM Mono', monospace" }}
+            >
+              Start a Project
+            </span>
+          </motion.div>
+
+          <motion.h2
+            initial={{ opacity: 0, y: 24 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+            className="text-[clamp(2.2rem,5vw,4rem)] font-light text-white leading-tight mb-6"
+            style={{ fontFamily: "'Cormorant Garamond', serif" }}
+          >
+            Let's Build<br />
+            Something<br />
+            <em className="text-[#c8a96e]">Remarkable</em>
+          </motion.h2>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={inView ? { opacity: 1 } : {}}
+            transition={{ delay: 0.3, duration: 0.8 }}
+            className="text-[#4a4a4a] text-sm leading-relaxed mb-10 max-w-sm"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          >
+            Share your vision and we'll respond within 24 hours with a tailored proposal — no fluff, no obligation.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={inView ? { opacity: 1 } : {}}
+            transition={{ delay: 0.4, duration: 0.8 }}
+            className="space-y-5"
+          >
+            {[
+              { label: 'Email', value: 'hello@studio.id' },
+              { label: 'WhatsApp', value: '+62 812 3456 7890' },
+              { label: 'Location', value: 'Jakarta, Indonesia' },
+            ].map((c) => (
+              <div key={c.label} className="flex items-center gap-4">
+                <span
+                  className="text-[#2a2a2a] text-[10px] tracking-[0.2em] uppercase w-20 shrink-0"
+                  style={{ fontFamily: "'DM Mono', monospace" }}
+                >
+                  {c.label}
+                </span>
+                <span className="w-8 h-px bg-[#1e1e1e]" />
+                <span
+                  className="text-[#5a5a5a] text-sm"
+                  style={{ fontFamily: "'DM Sans', sans-serif" }}
+                >
+                  {c.value}
+                </span>
+              </div>
+            ))}
+          </motion.div>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          <div className="grid md:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">
-                Nama Lengkap *
-              </label>
-              <input
-                {...register('name')}
-                type="text"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition bg-white/70"
-                placeholder="Budi Santoso"
-              />
-              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">
-                Nama Bisnis *
-              </label>
-              <input
-                {...register('business_name')}
-                type="text"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition bg-white/70"
-                placeholder="Cafe Bahagia"
-              />
-              {errors.business_name && <p className="text-red-500 text-xs mt-1">{errors.business_name.message}</p>}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-primary mb-1">
-              Nomor WhatsApp *
-            </label>
-            <input
-              {...register('whatsapp')}
-              type="tel"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition bg-white/70"
-              placeholder="6281234567890"
-            />
-            <p className="text-xs text-text-secondary mt-1">Gunakan format 62... (tanpa 0 di awal)</p>
-            {errors.whatsapp && <p className="text-red-500 text-xs mt-1">{errors.whatsapp.message}</p>}
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">
-                Status Website *
-              </label>
-              <select
-                {...register('has_website')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition bg-white/70"
+        {/* Right — Form */}
+        <motion.div
+          initial={{ opacity: 0, y: 32 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+        >
+          <AnimatePresence mode="wait">
+            {submitted ? (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="border border-[#181818] p-12 flex flex-col items-center justify-center text-center min-h-[500px]"
               >
-                <option value="no">Belum punya website</option>
-                <option value="yes">Sudah punya, ingin upgrade</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">
-                Target Selesai *
-              </label>
-              <select
-                {...register('timeline')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition bg-white/70"
+                <div className="w-12 h-12 border border-[#c8a96e]/40 flex items-center justify-center mb-8">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c8a96e" strokeWidth="1.5">
+                    <path d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3
+                  className="text-white text-2xl font-light mb-3"
+                  style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                >
+                  Message Received
+                </h3>
+                <p
+                  className="text-[#4a4a4a] text-sm max-w-xs"
+                  style={{ fontFamily: "'DM Sans', sans-serif" }}
+                >
+                  We'll review your project details and get back to you within 24 hours.
+                </p>
+              </motion.div>
+            ) : (
+              <motion.form
+                key="form"
+                onSubmit={handleSubmit}
+                className="border border-[#181818] p-8 md:p-10 space-y-7"
               >
-                <option value="<1 month">Kurang dari 1 bulan</option>
-                <option value="1-3 months">1-3 bulan</option>
-                <option value=">3 months">Lebih dari 3 bulan</option>
-              </select>
-            </div>
-          </div>
+                {/* Name + Company */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label
+                      className="text-[#3a3a3a] text-[10px] tracking-[0.2em] uppercase block"
+                      style={{ fontFamily: "'DM Mono', monospace" }}
+                    >
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Your full name"
+                      className="w-full bg-transparent border-b border-[#1e1e1e] py-3 text-white text-sm placeholder-[#2a2a2a] focus:outline-none focus:border-[#c8a96e] transition-colors duration-300"
+                      style={{ fontFamily: "'DM Sans', sans-serif" }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label
+                      className="text-[#3a3a3a] text-[10px] tracking-[0.2em] uppercase block"
+                      style={{ fontFamily: "'DM Mono', monospace" }}
+                    >
+                      Company
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Your company"
+                      className="w-full bg-transparent border-b border-[#1e1e1e] py-3 text-white text-sm placeholder-[#2a2a2a] focus:outline-none focus:border-[#c8a96e] transition-colors duration-300"
+                      style={{ fontFamily: "'DM Sans', sans-serif" }}
+                    />
+                  </div>
+                </div>
 
-          <div>
-            <label className="block text-sm font-medium text-primary mb-1">
-              Estimasi Budget (Opsional)
-            </label>
-            <input
-              {...register('budget')}
-              type="number"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition bg-white/70"
-              placeholder="15000000"
-            />
-          </div>
+                {/* Email */}
+                <div className="space-y-2">
+                  <label
+                    className="text-[#3a3a3a] text-[10px] tracking-[0.2em] uppercase block"
+                    style={{ fontFamily: "'DM Mono', monospace" }}
+                  >
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="hello@yourcompany.com"
+                    className="w-full bg-transparent border-b border-[#1e1e1e] py-3 text-white text-sm placeholder-[#2a2a2a] focus:outline-none focus:border-[#c8a96e] transition-colors duration-300"
+                    style={{ fontFamily: "'DM Sans', sans-serif" }}
+                  />
+                </div>
 
-          <div>
-            <label className="block text-sm font-medium text-primary mb-1">
-              Ceritakan Kebutuhan Anda *
-            </label>
-            <textarea
-              {...register('need_description')}
-              rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent outline-none transition resize-none bg-white/70"
-              placeholder="Contoh: Saya punya bisnis kuliner yang ingin punya website untuk pemesanan online..."
-            />
-            {errors.need_description && <p className="text-red-500 text-xs mt-1">{errors.need_description.message}</p>}
-          </div>
+                {/* Service selector */}
+                <div className="space-y-3">
+                  <label
+                    className="text-[#3a3a3a] text-[10px] tracking-[0.2em] uppercase block"
+                    style={{ fontFamily: "'DM Mono', monospace" }}
+                  >
+                    Service Needed
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {services.map((s) => (
+                      <button
+                        type="button"
+                        key={s}
+                        onClick={() => setSelectedService(s)}
+                        className={`px-4 py-2 text-[10px] tracking-[0.15em] uppercase border transition-all duration-200 ${
+                          selectedService === s
+                            ? 'border-[#c8a96e] text-[#c8a96e] bg-[#c8a96e]/5'
+                            : 'border-[#1e1e1e] text-[#3a3a3a] hover:border-[#2e2e2e] hover:text-[#5a5a5a]'
+                        }`}
+                        style={{ fontFamily: "'DM Mono', monospace" }}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-          <Button type="submit" isLoading={isSubmitting} fullWidth size="lg">
-            <Send className="h-4 w-4 mr-2" />
-            Kirim & Dapatkan Konsultasi Gratis
-          </Button>
+                {/* Budget selector */}
+                <div className="space-y-3">
+                  <label
+                    className="text-[#3a3a3a] text-[10px] tracking-[0.2em] uppercase block"
+                    style={{ fontFamily: "'DM Mono', monospace" }}
+                  >
+                    Budget Range
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {budgets.map((b) => (
+                      <button
+                        type="button"
+                        key={b}
+                        onClick={() => setSelectedBudget(b)}
+                        className={`px-4 py-3 text-[10px] tracking-[0.1em] text-left border transition-all duration-200 ${
+                          selectedBudget === b
+                            ? 'border-[#c8a96e] text-[#c8a96e] bg-[#c8a96e]/5'
+                            : 'border-[#1e1e1e] text-[#3a3a3a] hover:border-[#2e2e2e]'
+                        }`}
+                        style={{ fontFamily: "'DM Mono', monospace" }}
+                      >
+                        {b}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-          <div className="flex items-center justify-center gap-2 text-xs text-text-secondary">
-            <Shield className="h-3 w-3" />
-            <span>Data Anda aman dan tidak akan disebarluaskan</span>
-          </div>
-        </form>
-      </motion.div>
-    </Container>
+                {/* Message */}
+                <div className="space-y-2">
+                  <label
+                    className="text-[#3a3a3a] text-[10px] tracking-[0.2em] uppercase block"
+                    style={{ fontFamily: "'DM Mono', monospace" }}
+                  >
+                    Project Brief
+                  </label>
+                  <textarea
+                    rows={4}
+                    placeholder="Tell us about your project goals, timeline, and any specific requirements…"
+                    className="w-full bg-transparent border-b border-[#1e1e1e] py-3 text-white text-sm placeholder-[#2a2a2a] focus:outline-none focus:border-[#c8a96e] transition-colors duration-300 resize-none"
+                    style={{ fontFamily: "'DM Sans', sans-serif" }}
+                  />
+                </div>
+
+                {/* Submit */}
+                <button
+                  type="submit"
+                  className="w-full py-4 bg-[#c8a96e] text-[#080808] text-xs tracking-[0.25em] uppercase font-semibold hover:bg-[#d4b97e] active:scale-[0.99] transition-all duration-200"
+                  style={{ fontFamily: "'DM Mono', monospace" }}
+                >
+                  Send Project Brief
+                </button>
+
+                <p
+                  className="text-center text-[#2a2a2a] text-[10px] tracking-[0.1em]"
+                  style={{ fontFamily: "'DM Mono', monospace" }}
+                >
+                  Response within 24 hours · No spam · No obligation
+                </p>
+              </motion.form>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
+    </section>
   )
 }
