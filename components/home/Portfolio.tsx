@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { Container } from '@/components/ui/Container'
@@ -78,6 +79,7 @@ export function Portfolio() {
                   ? 'bg-primary text-white shadow-sm'
                   : 'bg-white border border-gray-200 text-text-secondary hover:border-primary hover:text-primary'
                 }`}
+              aria-pressed={activeCategory === category}
             >
               {category}
             </button>
@@ -98,10 +100,13 @@ export function Portfolio() {
               >
                 <Card className="group cursor-pointer h-full" onClick={() => setSelectedItem(item)}>
                   <div className="relative overflow-hidden">
-                    <img
+                    <Image
                       src={item.image}
                       alt={item.title}
+                      width={600}
+                      height={400}
                       className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
                     />
                     <div className="absolute inset-0 bg-primary/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <div className="flex items-center gap-2 bg-white/90 text-primary font-semibold text-sm px-4 py-2 rounded-lg">
@@ -145,6 +150,9 @@ export function Portfolio() {
             transition={{ duration: 0.2 }}
             className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
             onClick={() => setSelectedItem(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.92, y: 24 }}
@@ -154,14 +162,26 @@ export function Portfolio() {
               className="glass-card rounded-2xl max-w-lg w-full"
               onClick={(e) => e.stopPropagation()}
             >
-              <img src={selectedItem.image} alt={selectedItem.title} className="w-full h-52 object-cover rounded-t-2xl" />
+              <Image 
+                src={selectedItem.image} 
+                alt={selectedItem.title} 
+                width={600}
+                height={300}
+                className="w-full h-52 object-cover rounded-t-2xl" 
+              />
               <div className="p-6">
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <h3 className="text-xl font-bold text-primary">{selectedItem.title}</h3>
+                    <h3 id="modal-title" className="text-xl font-bold text-primary">{selectedItem.title}</h3>
                     <span className="text-xs text-accent font-semibold">{selectedItem.category}</span>
                   </div>
-                  <button onClick={() => setSelectedItem(null)} className="text-text-secondary hover:text-primary text-lg">✕</button>
+                  <button 
+                    onClick={() => setSelectedItem(null)} 
+                    className="text-text-secondary hover:text-primary text-lg"
+                    aria-label="Tutup modal"
+                  >
+                    ✕
+                  </button>
                 </div>
                 <p className="text-text-secondary text-sm mb-4">{selectedItem.description}</p>
                 <div className="bg-accent/10 rounded-xl p-4 mb-4 flex items-center justify-between">
